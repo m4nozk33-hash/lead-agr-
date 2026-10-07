@@ -1,11 +1,13 @@
 import { NextResponse } from 'next/server';
-import { sql } from '../../../lib/db';
+import { ensureSchema, sql } from '../../../lib/db';
 const t = (v: any) => (typeof v === 'string' && v.trim() ? v.trim() : null);
 export async function GET() {
+  await ensureSchema();
   const rows = await sql`select l.*, (select count(*) from activities a where a.lead_id=l.id and a.kind='contact')::int as contacts from leads l order by l.created_at desc`;
   return NextResponse.json(rows);
 }
 export async function POST(req: Request) {
+  await ensureSchema();
   const b = await req.json();
   if (!t(b.name)) return NextResponse.json({ error: 'Informe o nome da empresa' }, { status: 400 });
   try {
